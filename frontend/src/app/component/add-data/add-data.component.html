@@ -1,0 +1,313 @@
+<!--Data Entry form -->
+
+<div style="margin: auto;" *ngIf="referenceOptions
+  && learningActivitiesOptions && (indicatorOptions$ | async)">
+
+    <div class="title">
+        Add NEW Indicators and their Metrics
+    </div>
+
+    <div class="content-wrapper">
+        <div class="form-wrapper">
+            <fieldset>
+                <legend>Indicator</legend>
+                <form [formGroup]="indicatorForm" class="form-section">
+                    <div class="form-element form-element-100">
+                        <label>Learning Activities *</label>
+                        <ng-select formControlName="learningActivity" placeholder="Learning Activities"
+                                   (change)="learningActivitySelected($event)"
+                                   [compareWith]="compareMethod">
+                            <ng-option *ngFor="let learningActivity of learningActivitiesOptions"
+                                       [value]="learningActivity">
+                                {{learningActivity.name}}
+                            </ng-option>
+                        </ng-select>
+                        <div
+                            *ngIf="indicatorForm.controls['learningActivity'].invalid && (indicatorForm.controls['learningActivity'].dirty || indicatorForm.controls['learningActivity'].touched)"
+                            class="alert">
+                                Learning Activity is required.
+                        </div>
+                    </div>
+                    <div class="form-element form-element-100" *ngIf="similarActivityMessage">
+                        <div style="color: rgb(4, 117, 14);" [innerHTML]="similarActivityMessage"></div>
+                    </div>
+                    <div class="form-element form-element-85">
+                        <label>Name *</label>
+                        <input type="text" formControlName="indicatorName" placeholder="Indicator Name" required/>
+                        <div
+                            *ngIf="indicatorForm.controls['indicatorName'].invalid && (indicatorForm.controls['indicatorName'].dirty || indicatorForm.controls['indicatorName'].touched)"
+                            class="alert">
+                            Name is required.
+                        </div>
+                    </div>
+                    <div class="form-element form-element-15">
+                        <label>Number *</label>
+                        <input type="text" formControlName="referenceNumber"/>
+                    </div>
+                    <div class="form-element form-element-100">
+                        <label>Metrics *</label>
+                        <textarea class="text" cols="30" rows="10" type="text" formControlName="metrics"
+                                  placeholder="Metrics must be comma seperated" required></textarea>
+                        <div
+                            *ngIf="indicatorForm.controls['metrics'].invalid && (indicatorForm.controls['metrics'].dirty || indicatorForm.controls['metrics'].touched)"
+                            class="alert">
+                            Metrics are required.
+                        </div>
+                    </div>
+                </form>
+            </fieldset>
+            <fieldset>
+                <legend>Reference</legend>
+                <form [formGroup]="referenceForm" class="form-section last" style="height: 100%">
+                    <div class="form-section">
+                        <div class="form-element form-element-100">
+                            <label>Text *</label>
+                            <ng-container *ngIf="!useExistingReference">
+                                <input type="text" formControlName="referenceText" placeholder="Reference Text"
+                                       required/>
+                            </ng-container>
+                            <ng-container *ngIf="useExistingReference">
+                                <ng-select placeholder="Reference" [readonly]="this.readonly('indicator')"
+                                           (change)="onReferenceChange($event)">
+                                    <ng-option *ngFor="let reference of referenceOptions" [value]="reference">
+                                        {{reference.referenceNumber}} {{reference.referenceText}}
+                                    </ng-option>
+                                </ng-select>
+                            </ng-container>
+                            <div
+                                *ngIf="referenceForm.controls['referenceText'].invalid && (referenceForm.controls['referenceText'].dirty || referenceForm.controls['referenceText'].touched)"
+                                class="alert">
+                                Text is required.
+                            </div>
+                        </div>
+                        <div class="form-element form-element-85">
+                            <label>Link *</label>
+                            <input type="text" formControlName="referenceLink" placeholder="Reference Link"/>
+                            <div
+                                *ngIf="referenceForm.controls['referenceLink'].invalid && (referenceForm.controls['referenceLink'].dirty || referenceForm.controls['referenceLink'].touched)"
+                                class="alert">
+                                Link is required.
+                            </div>
+                        </div>
+                        <div class="form-element form-element-15">
+                            <label>Number *</label>
+                            <input type="text" formControlName="referenceNumber"/>
+                        </div>
+                        <div class="form-element form-element-50">
+                            <label>Verified</label>
+                            <ng-select formControlName="verified" placeholder="Verification">
+                                <ng-option *ngFor="let verifiedOption of verifiedOptions" [value]="verifiedOption">
+                                    {{verifiedOption}}
+                                </ng-option>
+                            </ng-select>
+                        </div>
+                        <div class="form-element form-element-50">
+                            <label>Development</label>
+                            <ng-select formControlName="development" placeholder="Development">
+                                <ng-option *ngFor="let developmentOption of developmentOptions" [value]="developmentOption">
+                                    {{developmentOption}}
+                                </ng-option>
+                            </ng-select>
+                        </div>
+                    </div>
+                    <div class="form-section">
+                        <input type="checkbox" (change)="checkboxReferenceClicked()" [disabled]="target"/>
+                        <label>Use existing Reference</label>
+                    </div>
+                </form>
+            </fieldset>
+
+            <!------------------------------------------------------------------------------>
+            <input 
+                type="file" class="file-input"
+                (change)="onFileSelected($event)"
+                hidden
+                #fileUpload
+            >
+            <div class="file-upload">
+
+                {{fileName || "No file uploaded yet."}}
+
+                <button mat-mini-fab color="primary" class="upload-btn"
+                (click)="fileUpload.click()">
+                <mat-icon>cloud_upload</mat-icon>
+                </button>
+            </div>
+            <div *ngIf="fileData" class="table-wrapper">
+
+                <!-- Indicators -->
+                <div class="data-display-wrapper">
+                <table mat-table [dataSource]="fileData.indicators" class="mat-elevation-z8 data-display">
+                    <caption>Indicators</caption>
+
+                    <ng-container matColumnDef="Name">
+                        <th mat-header-cell *matHeaderCellDef> Name </th>
+                        <td mat-cell *matCellDef="let element"> 
+                            <mat-chip [id]="'indicator_sentences:' + element.name" (click)="openIndicatorDialog($event)" class="indicator-mat-chip">
+                                {{ element.name }}
+                            </mat-chip>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="Count">
+                        <th mat-header-cell *matHeaderCellDef> Count </th>
+                        <td mat-cell *matCellDef="let element"> {{element.count}} </td>
+                    </ng-container>
+
+                    <!-- <ng-container matColumnDef="Add">
+                        <th mat-header-cell *matHeaderCellDef> Add </th>
+                        <td mat-cell *matCellDef="let element" class="add-mat-chip"> Add </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="Remove">
+                        <th mat-header-cell *matHeaderCellDef> Remove </th>
+                        <td mat-cell *matCellDef="let element" class="remove-mat-chip"> Remove </td>
+                    </ng-container> -->
+
+                    <ng-container matColumnDef="Action">
+                        <th mat-header-cell *matHeaderCellDef></th>
+                        <td mat-cell *matCellDef="let element" style="float:right">
+                            <mat-chip 
+                                    [id]="'add_indicator:' + element.name" 
+                                    class="add-mat-chip"
+                                    (click)="setIndicator($event)"
+                            >
+                                +
+                            </mat-chip>
+                            <mat-chip 
+                                    [id]="'remove_indicator:' + element.name" 
+                                    class="remove-mat-chip" 
+                                    (click)="removeListElement($event)"
+                            >
+                                -
+                            </mat-chip>
+                        </td>
+                    </ng-container>
+
+
+                    <tr mat-header-row *matHeaderRowDef="indicatorColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: indicatorColumns;"></tr>
+                </table>
+                </div>
+
+                <!-- Metrics -->
+                <div class="data-display-wrapper">
+                <table mat-table [dataSource]="fileData.metrics" class="mat-elevation-z8 data-display">
+                    <caption>Metrics</caption>
+                    <ng-container matColumnDef="Name">
+                        <th mat-header-cell *matHeaderCellDef> Name </th>
+                        <td mat-cell *matCellDef="let element"> 
+                            <mat-chip [id]="'metric_sentences:' + element.name" (click)="openIndicatorDialog($event)" class="indicator-mat-chip">
+                                {{ element.name }}
+                            </mat-chip>
+                        </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="Count">
+                        <th mat-header-cell *matHeaderCellDef> Count </th>
+                        <td mat-cell *matCellDef="let element"> {{element.count}} </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="Action">
+                        <th mat-header-cell *matHeaderCellDef></th>
+                        <td mat-cell *matCellDef="let element">
+                            <mat-chip 
+                                    [id]="'add_metric:' + element.name" 
+                                    class="add-mat-chip"
+                                    (click)="addMetric($event)"
+                            >
+                                +
+                            </mat-chip>
+                            <mat-chip
+                                    [id]="'remove_metric:' + element.name" 
+                                    class="remove-mat-chip" 
+                                    (click)="removeListElement($event)"
+                            >
+                                -
+                            </mat-chip>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="metricColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: metricColumns;"></tr>
+                </table>
+                </div>
+
+                <!-- Activities: -->
+                <div class="data-display-wrapper">
+                <table mat-table [dataSource]="fileData.activities" class="mat-elevation-z8 data-display">
+                    <caption>Activities</caption>
+                    <ng-container matColumnDef="Name">
+                        <th mat-header-cell *matHeaderCellDef> Name </th>
+                        <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="Count">
+                        <th mat-header-cell *matHeaderCellDef> Count </th>
+                        <td mat-cell *matCellDef="let element"> {{element.count}} </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="Indicators">
+                        <th mat-header-cell *matHeaderCellDef> List </th>
+                        <td mat-cell *matCellDef="let element">
+                        <mat-chip-list>
+                            <mat-chip *ngFor="let i of element.list">
+                            {{i}}
+                            </mat-chip>
+                        </mat-chip-list>
+                        </td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="activityColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: activityColumns;"></tr>
+                </table>
+                </div>
+
+                <!-- Events: -->
+                <div class="data-display-wrapper">
+                <table mat-table [dataSource]="fileData.events" class="mat-elevation-z8 data-display">
+                    <caption>Events</caption>
+                <ng-container matColumnDef="Name">
+                    <th mat-header-cell *matHeaderCellDef> Name </th>
+                    <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="Count">
+                    <th mat-header-cell *matHeaderCellDef> Count </th>
+                    <td mat-cell *matCellDef="let element"> {{element.count}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="Activities">
+                    <th mat-header-cell *matHeaderCellDef> List </th>
+                    <td mat-cell *matCellDef="let element">
+                    <mat-chip-list>
+                        <mat-chip *ngFor="let i of element.list">
+                        {{i}}
+                        </mat-chip>
+                    </mat-chip-list>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="eventColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: eventColumns;"></tr>
+                </table>
+                </div>
+            </div>
+            <!------------------------------------------------------------------------------>
+
+        </div>
+        <div style="min-width: 260px">
+            <button
+                style="padding: 6px 8px 6px 8px; float: right; margin-right: 8px; background-image: linear-gradient(45deg, #8e1e22 10%, #edcfcf 51%, #8e1e22 100%) !important; box-shadow: 2px 4px 5px 0 #ead8d8;"
+                class="buttonLaTool" (click)='logout()'>Logout
+            </button>
+            <span style="float: right; margin-right: 16px; margin-top: 17px;" *ngIf="CUserName">
+                Welcome, {{CUserName}}
+            </span>
+            <button type="submit" class="buttonLaTool save-button" style="float: right;"
+                    (click)='addData()'>Save
+            </button>
+        </div>
+    </div>
+
+</div>

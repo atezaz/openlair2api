@@ -1,0 +1,90 @@
+.container {
+
+    background: white;
+
+    height: auto;
+    width: auto;
+
+    box-shadow: 1px 1px 2px 2px #888888;
+    padding-bottom: 24px;
+    position: absolute;
+    transform: translate(50%, 50%);
+    bottom: 50%;
+    right: 50%;
+
+
+}
+
+#title {
+    text-align: center;
+    font-weight: normal;
+    padding: 24px;
+    background-color: #3F51B5;
+    color: white;
+}
+
+#username {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin: 25px 45px 0;
+    padding-left: 10px;
+    font-size: 16px;
+}
+
+#password {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin: 25px 45px 0;
+    padding-left: 10px;
+    font-size: 16px;
+}
+
+label {
+    padding-right: 20px;
+    padding-left: 16px;
+    font-weight: bold;
+}
+
+input {
+    font-size: 16px;
+    font-weight: normal;
+    background-color: #3F51B5;
+    border: none;
+    border-radius: 4px;
+    width: 180px;
+    height: 28px;
+    color: white;
+
+}
+
+#submit {
+    text-align: center;
+    margin: 20px;
+
+}
+
+#register, #login {
+    text-align: center;
+}
+
+a {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#submit > button {
+    background-color: #3F51B5;
+    color: white;
+}
+
+.alert {
+    color: red;
+    font-size: small;
+    margin: 0;
+}
+
+.submitbtn:disabled {
+    cursor: not-allowed;
+}
